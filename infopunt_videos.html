@@ -1,0 +1,145 @@
+
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Infopunt Video's</title>
+  <style>
+    body {
+      background-color: #000;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      padding: 30px;
+      font-family: sans-serif;
+    }
+    .video-thumbnail {
+      width: 320px;
+      height: 180px;
+      background-size: cover;
+      background-position: center;
+      border: 3px solid white;
+      cursor: pointer;
+    }
+    #player-container {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: black;
+      z-index: 9999;
+    }
+    #yt-player, #vimeo-player {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- YouTube Thumbnail -->
+  <div class="video-thumbnail" style="background-image: url('https://img.youtube.com/vi/AxLpmSTWsMQ/hqdefault.jpg');" onclick="playYouTubeVideo('AxLpmSTWsMQ')"></div>
+
+  <!-- Vimeo Thumbnails -->
+  <div class="video-thumbnail" style="background-image: url('https://i.vimeocdn.com/video/1692093795-640.jpg');" onclick="playVimeoVideo('894189439')"></div>
+  <div class="video-thumbnail" style="background-image: url('https://i.vimeocdn.com/video/1229369335-640.jpg');" onclick="playVimeoVideo('472262698')"></div>
+  <div class="video-thumbnail" style="background-image: url('https://i.vimeocdn.com/video/1561057300-640.jpg');" onclick="playVimeoVideo('775051637')"></div>
+
+  <!-- Verborgen Player Container -->
+  <div id="player-container">
+    <div id="yt-player" style="display:none;"></div>
+    <iframe id="vimeo-player" style="display:none;" frameborder="0" allowfullscreen></iframe>
+  </div>
+
+  <!-- YouTube API -->
+  <script src="https://www.youtube.com/iframe_api"></script>
+
+  <!-- Vimeo API -->
+  <script src="https://player.vimeo.com/api/player.js"></script>
+
+  <script>
+    let ytPlayer;
+    let vimeoPlayer;
+
+    function onYouTubeIframeAPIReady() {
+      ytPlayer = new YT.Player('yt-player', {
+        playerVars: {
+          autoplay: 1,
+          controls: 0,
+          modestbranding: 1,
+          rel: 0,
+          showinfo: 0
+        },
+        events: {
+          'onStateChange': onYouTubeStateChange
+        }
+      });
+    }
+
+    function playYouTubeVideo(videoId) {
+      document.getElementById('vimeo-player').style.display = 'none';
+      document.getElementById('yt-player').style.display = 'block';
+      document.getElementById('player-container').style.display = 'block';
+      ytPlayer.loadVideoById(videoId);
+      openFullscreen(document.getElementById('player-container'));
+    }
+
+    function onYouTubeStateChange(event) {
+      if (event.data === YT.PlayerState.ENDED) {
+        stopAndReset();
+      }
+    }
+
+    function playVimeoVideo(videoId) {
+      const vimeoIframe = document.getElementById('vimeo-player');
+      const container = document.getElementById('player-container');
+      document.getElementById('yt-player').style.display = 'none';
+      vimeoIframe.style.display = 'block';
+      container.style.display = 'block';
+
+      vimeoIframe.src = `https://player.vimeo.com/video/${videoId}?autoplay=1&background=0&title=0&byline=0&portrait=0`;
+
+      vimeoPlayer = new Vimeo.Player(vimeoIframe);
+      openFullscreen(container);
+
+      vimeoPlayer.on('ended', function () {
+        stopAndReset();
+      });
+    }
+
+    function openFullscreen(elem) {
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.mozRequestFullScreen) {
+        elem.mozRequestFullScreen();
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+      }
+    }
+
+    function closeFullscreen() {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.mozCancelFullScreen) {
+        document.mozCancelFullScreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+      }
+    }
+
+    function stopAndReset() {
+      closeFullscreen();
+      document.getElementById('player-container').style.display = 'none';
+      if (ytPlayer) ytPlayer.stopVideo();
+      if (vimeoPlayer) {
+        vimeoPlayer.unload();
+        document.getElementById('vimeo-player').src = '';
+      }
+    }
+  </script>
+</body>
+</html>
